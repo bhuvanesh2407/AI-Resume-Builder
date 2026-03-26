@@ -1,0 +1,9 @@
+{
+    "introduction": "\n{\n    \"name\": \"string\",\n    \"designation\": \"string\",\n    \"place\": \"string\",\n    \"emails\": [\"string\"],\n    \"mobile_numbers\": [\"string\"],\n    \"links\": [\"string\"],\n    \"nationality\": \"string|null\",\n    \"dob\": \"YYYY-MM-DD|null\",\n    \"visa_status\": \"string|null\",\n    \"notice_period\": \"string|null\"\n}\n",
+    "professional_summary": "string|null",
+    "technical_skills": "string|null",
+    "professional_experience": " [\n    {\n    \"job_title\": \"string\",\n    \"company_name\": \"string\",\n    \"place\": \"string\",\n    \"from_date\": \"string|null\",\n    \"to_date\": \"string|null\",\n    \"description\": \"string|null\"\n    }\n]",
+    "technical_projects": "[\n    {\n    \"project_name\": \"string\",\n    \"description\": \"string|null\"\n    }\n]",
+    "education": "\n    [\n    {\n    \"degree_name\": \"string\",\n    \"college_name\": \"string\",\n    \"place\": \"string\",\n    \"completed_on\": \"string|null\",\n    \"result\": \"string|null\",\n    \"description\": \"string|null\"\n    }\n]",
+    "certifications": "[\n    {\n    \"title\": \"string\",\n    \"issuing_company\": \"string\",\n    \"completion_date\": \"string|null\"\n    }\n]"
+}

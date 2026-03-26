@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Create Resume</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/create-resume.css') }}">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+</head>
+
+<body>
+    <h1>Create Resume</h1>
+    <form method="POST" action="/build-resume">
+
+        <div class="section">
+            <h2>Basic Info</h2>
+
+            <label>Name</label> <input name="name" required>
+
+            <label>Designation</label> <input name="designation" required>
+
+            <label>Place</label> <input name="place">
+
+            <label>Nationality</label> <input name="nationality">
+
+            <label>Date of Birth</label> <input type="date" name="dob">
+
+            <label>Visa Status</label> <input name="visa_status">
+
+            <label>Notice Period</label> <input name="notice_period">
+
+            <label>Profile Description</label>
+
+            <textarea name="profile_description"></textarea>
+
+        </div>
+
+        <div class="section">
+
+            <h2>Contact</h2>
+
+            <label>Emails</label>
+
+            <div id="emails"></div>
+            <button type="button" class="add-btn" onclick="addSimpleField('emails','emails')">
+                Add Email
+            </button>
+
+            <label>Mobile Numbers</label>
+
+            <div id="mobiles"></div>
+            <button type="button" class="add-btn" onclick="addSimpleField('mobiles','mobile_numbers')">
+                Add Mobile
+            </button>
+
+            <label>Links</label>
+
+            <div id="links"></div>
+            <button type="button" class="add-btn" onclick="addSimpleField('links','links')">
+                Add Link
+            </button>
+
+        </div>
+
+        <div class="section">
+
+            <h2>Professional Summary</h2>
+            <textarea name="professional_summary"></textarea>
+
+            <h2>Technical Skills</h2>
+            <textarea name="technical_skills"></textarea>
+
+        </div>
+
+        <div class="section">
+
+            <h2>Professional Experience</h2>
+
+            <div id="experience"></div>
+
+            <button type="button" class="add-btn" onclick='addComplexBlock("experience",` <label>Job Title</label> <input name="experience[INDEX][job_title]">
+
+<label>Company Name</label> <input name="experience[INDEX][company_name]">
+
+<label>Place</label> <input name="experience[INDEX][place]">
+
+<label>From Date</label> <input name="experience[INDEX][from_date]">
+
+<label>To Date</label> <input name="experience[INDEX][to_date]">
+
+<label>Description</label>
+
+<textarea name="experience[INDEX][description]"></textarea>
+
+`)'>
+                Add Experience </button>
+
+        </div>
+
+        <div class="section">
+
+            <h2>Technical Projects</h2>
+
+            <div id="projects"></div>
+
+            <button type="button" class="add-btn" onclick='addComplexBlock("projects",` <label>Project Name</label> <input name="projects[INDEX][project_name]">
+
+<label>Description</label>
+
+<textarea name="projects[INDEX][description]"></textarea>
+
+`)'>
+                Add Project </button>
+
+        </div>
+
+        <div class="section">
+
+            <h2>Education</h2>
+
+            <div id="education"></div>
+
+            <button type="button" class="add-btn" onclick='addComplexBlock("education",` <label>Degree Name</label> <input name="education[INDEX][degree_name]">
+
+<label>College Name</label> <input name="education[INDEX][college_name]">
+
+<label>Place</label> <input name="education[INDEX][place]">
+
+<label>Completed On</label> <input name="education[INDEX][completed_on]">
+
+<label>Result</label> <input name="education[INDEX][result]">
+
+<label>Description</label>
+
+<textarea name="education[INDEX][description]"></textarea>
+
+`)'>
+                Add Education </button>
+
+        </div>
+
+        <div class="section">
+
+            <h2>Certifications</h2>
+
+            <div id="certifications"></div>
+
+            <button type="button" class="add-btn" onclick='addComplexBlock("certifications",` <label>Title</label> <input name="certifications[INDEX][title]">
+
+<label>Issuing Company</label> <input name="certifications[INDEX][issuing_company]">
+
+<label>Completion Date</label> <input name="certifications[INDEX][completion_date]">
+`)'>
+                Add Certification </button>
+
+        </div>
+
+        <button class="submit-btn">
+            Build Resume
+        </button>
+
+    </form>
+
+    <!-- Include the JS at the end -->
+    <script src="{{ url_for('static', filename='js/create-resume.js') }}"></script>
+</body>
+
+</html>

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tailor Your Resume</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Tailor Your Resume</h1>
+
+        <h3>Selected Resume</h3>
+        <div id="selected-resume"></div>
+
+        <!-- Resume Upload Button -->
+        <div class="section">
+            <button id="uploadResumeBtn" class="add-btn">Select Resume</button>
+        </div>
+
+        <!-- Job Description Form -->
+        <form id="jobForm" action="/generate-resume" method="POST">
+            <form id="jobForm">
+                <label for="jobDescription">Job Description:</label>
+                <textarea id="jobDescription" name="jobDescription"
+                    placeholder="Enter job description here..."></textarea>
+                <button type="submit" class="submit-btn">Submit</button>
+            </form>
+    </div>
+    </div>
+
+    <script>
+        function fetch_resume(id) {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open('ResumeDB', 1);
+
+                request.onerror = function (event) {
+                    console.error('IndexedDB error:', event.target.error);
+                    reject(event.target.error);
+                };
+
+                request.onsuccess = function (event) {
+                    const db = event.target.result;
+                    const transaction = db.transaction(['resumes'], 'readonly');
+                    const store = transaction.objectStore('resumes');
+
+                    // Convert string ID to number if your keyPath is integer
+                    const key = isNaN(id) ? id : Number(id);
+
+                    const getRequest = store.get(key);
+
+                    getRequest.onsuccess = function () {
+                        const resume = getRequest.result || null;
+                        resolve(resume);
+                    };
+
+                    getRequest.onerror = function () {
+                        console.error('Failed to get resume from IndexedDB');
+                        reject('Failed to get resume');
+                    };
+                };
+            });
+        }
+
+        function selected_resume(resume_id) {
+
+            fetch_resume(resume_id).then(resume => {
+                if (resume) {
+                    $('#selected-resume').html(`
+                    <div class="resume-card" data-id="${resume.id}" style="border:1px solid #ccc; background-color:#007bff; padding:10px; margin:10px;">
+                    <h3>${resume.name} (${resume.designation})</h3>
+                    <p>${resume.place || ""} | ${resume.nationality || ""}</p>
+                        </div>
+                    `);
+                } else {
+                    console.log('No resume selected.');
+                    $('#selected-resume').html('<p>No resume selected.</p>');
+                }
+            }).catch(err => console.error(err));
+        }
+
+        $(document).ready(function () {
+
+            // Get the selected resume id from localStorage
+            let resume_id = Number(localStorage.getItem('selectedResume'));
+            selected_resume(resume_id);
+            // Redirect to /home when clicking the resume button
+            $('#uploadResumeBtn').on('click', function () {
+                window.location.href = '/home';
+            });
+
+
+        });
+
+
+        $(document).on('submit', '#jobForm', function (e) {
+            e.preventDefault(); // stop the default submission
+            const form = this;
+            const resume_id = localStorage.getItem('selectedResume');
+
+            // Fetch resume asynchronously
+            fetch_resume(resume_id).then(resume => {
+                if (!resume) {
+                    alert('No resume found');
+                    return; // stop submission
+                }
+
+                // Populate the hidden input **before submitting**
+                const hiddenInput = $('#resumeData');
+
+                if (hiddenInput.length === 0) {
+                    // If hidden input doesn't exist, create it
+                    $('<input>').attr({
+                        type: 'hidden',
+                        id: 'resumeData',
+                        name: 'resumeData',
+                        value: JSON.stringify(resume)
+                    }).appendTo(form);
+                } else {
+                    // If it exists, just set the value
+                    hiddenInput.val(JSON.stringify(resume));
+                }
+
+                console.log('Resume ready for submission:', resume);
+
+                // Manually submit the form now
+                form.submit();
+            }).catch(err => {
+                console.error('Error fetching resume:', err);
+                alert('Failed to fetch resume');
+            });
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,7 @@
+/.env
+/bin
+/test.json
+/test.py
+/testing.py
+/venv
+/__pycache__
