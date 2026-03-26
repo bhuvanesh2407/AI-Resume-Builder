@@ -1,5 +1,6 @@
 /.env
 /bin
+/models/test
 /test.json
 /test.py
 /testing.py
