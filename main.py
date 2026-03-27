@@ -153,7 +153,7 @@ def generate_resume():
 
         generator = generate_ai_resume(generator=generator, resume_obj=resume_obj)
 
-        word_doc = build_word_doc(resume_obj=resume_obj, doc_name=doc_name, debug=True)
+        word_doc = build_word_doc(resume_obj=resume_obj, debug=True)
 
 
         response = send_file(
