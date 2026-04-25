@@ -1,14 +1,19 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <title>Create Resume</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/create-resume.css') }}">
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-</head>
+{% set scripts = [
+'create-resume.js'
+] %}
 
-<body>
+{% set styles = [
+'create-resume.css'
+] %}
+
+{%block title%} Create Resume - Resume Builder {% endblock %}
+
+
+
+{% block content%}
+
     <h1>Create Resume</h1>
     <form method="POST" action="/build-resume">
 
@@ -80,19 +85,19 @@
 
             <button type="button" class="add-btn" onclick='addComplexBlock("experience",` <label>Job Title</label> <input name="experience[INDEX][job_title]">
 
-<label>Company Name</label> <input name="experience[INDEX][company_name]">
+    <label>Company Name</label> <input name="experience[INDEX][company_name]">
 
-<label>Place</label> <input name="experience[INDEX][place]">
+    <label>Place</label> <input name="experience[INDEX][place]">
 
-<label>From Date</label> <input name="experience[INDEX][from_date]">
+    <label>From Date</label> <input name="experience[INDEX][from_date]">
 
-<label>To Date</label> <input name="experience[INDEX][to_date]">
+    <label>To Date</label> <input name="experience[INDEX][to_date]">
 
-<label>Description</label>
+    <label>Description</label>
 
-<textarea name="experience[INDEX][description]"></textarea>
+    <textarea name="experience[INDEX][description]"></textarea>
 
-`)'>
+    `)'>
                 Add Experience </button>
 
         </div>
@@ -105,11 +110,11 @@
 
             <button type="button" class="add-btn" onclick='addComplexBlock("projects",` <label>Project Name</label> <input name="projects[INDEX][project_name]">
 
-<label>Description</label>
+    <label>Description</label>
 
-<textarea name="projects[INDEX][description]"></textarea>
+    <textarea name="projects[INDEX][description]"></textarea>
 
-`)'>
+    `)'>
                 Add Project </button>
 
         </div>
@@ -122,19 +127,19 @@
 
             <button type="button" class="add-btn" onclick='addComplexBlock("education",` <label>Degree Name</label> <input name="education[INDEX][degree_name]">
 
-<label>College Name</label> <input name="education[INDEX][college_name]">
+    <label>College Name</label> <input name="education[INDEX][college_name]">
 
-<label>Place</label> <input name="education[INDEX][place]">
+    <label>Place</label> <input name="education[INDEX][place]">
 
-<label>Completed On</label> <input name="education[INDEX][completed_on]">
+    <label>Completed On</label> <input name="education[INDEX][completed_on]">
 
-<label>Result</label> <input name="education[INDEX][result]">
+    <label>Result</label> <input name="education[INDEX][result]">
 
-<label>Description</label>
+    <label>Description</label>
 
-<textarea name="education[INDEX][description]"></textarea>
+    <textarea name="education[INDEX][description]"></textarea>
 
-`)'>
+    `)'>
                 Add Education </button>
 
         </div>
@@ -147,10 +152,10 @@
 
             <button type="button" class="add-btn" onclick='addComplexBlock("certifications",` <label>Title</label> <input name="certifications[INDEX][title]">
 
-<label>Issuing Company</label> <input name="certifications[INDEX][issuing_company]">
+    <label>Issuing Company</label> <input name="certifications[INDEX][issuing_company]">
 
-<label>Completion Date</label> <input name="certifications[INDEX][completion_date]">
-`)'>
+    <label>Completion Date</label> <input name="certifications[INDEX][completion_date]">
+    `)'>
                 Add Certification </button>
 
         </div>
@@ -161,8 +166,4 @@
 
     </form>
 
-    <!-- Include the JS at the end -->
-    <script src="{{ url_for('static', filename='js/create-resume.js') }}"></script>
-</body>
-
-</html>
+{% endblock %}

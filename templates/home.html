@@ -1,19 +1,18 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <title>Resume Home</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <!-- jQuery CDN -->
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="{{ url_for('static', filename='js/home.js') }}"></script>
+{% set scripts = [
+    'home.js'
+] %}
 
-</head>
+{% set styles = [
+    'style.css'
+] %}
 
-<body>
-    <h1>Saved Resumes</h1>
-    <button id="create-new">Create New Resume</button>
+{%block title%} Home - Resume Builder {% endblock %}
+
+{%block content%}
+    <h1 style="padding-top: 10px;">Saved Resumes</h1>
+    <button id="create-new" style="margin-left: 20px;">Create New Resume</button>
     <div id="resume-list"></div>
     <div class="modal fade" id="resumeModal" tabindex="-1">
         <div class="modal-dialog modal-lg modal-dialog-scrollable">
@@ -30,11 +29,10 @@
             </div>
         </div>
     </div>
+{% endblock %}
+<body>
+    
 </body>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
-    crossorigin="anonymous">
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous">
-</script>
 
 </html>

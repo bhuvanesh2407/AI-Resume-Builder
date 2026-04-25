@@ -6,7 +6,7 @@ let dbRequest = indexedDB.open("ResumeDB", 1);
 // List all resumes
 // -------------------------
 function listAllResumes() {
-  let transaction = db.transaction("resumes", "readonly");
+  let transaction = window.db.transaction("resumes", "readonly");
   let store = transaction.objectStore("resumes");
   let request = store.getAll();
 
@@ -21,9 +21,10 @@ function listAllResumes() {
                         <div class="resume-card" data-id="${resume.id}" style="border:1px solid #ccc; padding:10px; margin:10px;">
                             <h3>${resume.name} (${resume.designation})</h3>
                             <p>${resume.place || ""} | ${resume.nationality || ""}</p>
-                            <button class="select-resume">Select Resume</button>
-                            <button class="view-resume">View</button>
-                            <button class="delete-resume">Delete</button>
+                                <button class="select-resume">Select Resume</button>
+                                <button class="edit-resume">Edit</button>
+                                <button class="view-resume">View</button>
+                                <button class="delete-resume">Delete</button>
                         </div>
                     `;
       });
@@ -77,7 +78,7 @@ dbRequest.onerror = function (e) {
 $(document).on("click", ".delete-resume", function () {
   let id = Number($(this).closest(".resume-card").data("id"));
   if (confirm("Are you sure you want to delete this resume?")) {
-    let transaction = db.transaction("resumes", "readwrite");
+    let transaction = window.db.transaction("resumes", "readwrite");
     let store = transaction.objectStore("resumes");
     store.delete(id);
     transaction.oncomplete = () => {
@@ -100,6 +101,8 @@ $(document).on("click", ".select-resume", function () {
   localStorage.setItem("selectedResume", id);
   alert("Resume id " + id + " is selected.");
   highlightResume();
+  // refresh page
+  location.reload();
 });
 
 // -------------------------
@@ -108,7 +111,7 @@ $(document).on("click", ".select-resume", function () {
 $(document).on("click", ".view-resume", function () {
   let id = Number($(this).closest(".resume-card").data("id"));
 
-  let transaction = db.transaction("resumes", "readonly");
+  let transaction = window.db.transaction("resumes", "readonly");
   let store = transaction.objectStore("resumes");
   let request = store.get(id);
 
@@ -180,4 +183,9 @@ $(document).on("click", ".view-resume", function () {
     let modal = new bootstrap.Modal(document.getElementById("resumeModal"));
     modal.show();
   };
+});
+
+$(document).on("click", ".edit-resume", function () {
+  let id = Number($(this).closest(".resume-card").data("id"));
+  window.location.href = `/create-resume?id=${id}`;
 });

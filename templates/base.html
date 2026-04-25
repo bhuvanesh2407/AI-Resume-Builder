@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- jQuery CDN -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+    <title>{% block title%} Resume Builder{% endblock %}</title>
+
+    {% if styles %}
+    {% for style in styles %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/' ~ style) }}">
+    {% endfor %}
+    {% endif %}
+    <!-- Page-specific scripts -->
+    {% if scripts %}
+    {% for script in scripts %}
+    <script src="{{ url_for('static', filename='js/' ~ script) }}"></script>
+    {% endfor %}
+    {% endif %}
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+        crossorigin="anonymous">
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous">
+    </script>
+</head>
+
+<body>
+    {% include "navbar.html" %}
+    
+    {% block content%}
+    {% endblock %}
+</body>
+
+
+
+</html>
