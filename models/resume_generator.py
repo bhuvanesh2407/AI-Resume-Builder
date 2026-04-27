@@ -67,13 +67,27 @@ class ResumeGenerator:
             print(json.dumps(result, indent=4) if isinstance(result, dict) else result)
 
     def generate_introduction(self, resume_obj: Resume):
-        keys = [
-            'designation', 'dob', 'emails', 'links', 
-            'mobile_numbers', 'name', 'nationality', 
-            'notice_period', 'place', 'visa_status'
+        ai_keys = [
+        'designation', 'nationality', 
+        'notice_period', 'visa_status'
         ]
-        resume_content = {key: self.resume_data.get(key) for key in keys}
-        result = self._call_ai_with_retry(part="introduction", resume_content=resume_content)
+        
+        local_keys = [
+            'name', 'place', 'emails', 
+            'mobile_numbers', 'links', 'dob'
+        ]
+
+        ai_content = {key: self.resume_data.get(key) for key in ai_keys}
+        local_content = {key: self.resume_data.get(key) for key in local_keys}
+        
+        # keys = [
+        #     'designation', 'dob', 'emails', 'links', 
+        #     'mobile_numbers', 'name', 'nationality', 
+        #     'notice_period', 'place', 'visa_status'
+        # ]
+        # resume_content = {key: self.resume_data.get(key) for key in keys}
+        # result = self._call_ai_with_retry(part="introduction", resume_content=resume_content)
+        result = self._call_ai_with_retry(part="introduction", resume_content=ai_content)
         
         resume_obj.name = result['name']
         resume_obj.place = result['place']
@@ -85,7 +99,6 @@ class ResumeGenerator:
         resume_obj.dob = result['dob']
         resume_obj.visa_status = result['visa_status']
         resume_obj.notice_period = result['notice_period']
-        resume_obj.dob = result['dob']
         self._pretty_print(result, "introduction")
         return result
 
