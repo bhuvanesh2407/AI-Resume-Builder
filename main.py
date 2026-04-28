@@ -8,6 +8,23 @@ from functions import generate_ai_resume, build_word_doc
 import os
 import threading
 import time
+import traceback
+
+from models.response import success_response, error_response, file_response
+
+
+def delete_file_later(path, delay=10):
+    def task():
+        time.sleep(delay)
+        try:
+            if os.path.exists(path):
+                os.remove(path)
+                print("Deleted:", path)
+        except Exception as e:
+            print("Error deleting file:", e)
+
+    threading.Thread(target=task, daemon=True).start()
+
 
 app = Flask(__name__)
 
@@ -139,57 +156,61 @@ def generate_resume():
     # Convert resumeData string to Python dict
     try:
         resume_pre_data = json.loads(resume_json_str)
-    except json.JSONDecodeError:
-        resume_data = {}
-        print("Warning: resumeData is not valid JSON")
-
+    except json.JSONDecodeError as e:
+        return error_response(
+            message="Invalid JSON format in resumeData",
+            status_code=400,
+            errors=str(e)  # optional
+        )
 
 
     # 🔥 Call your AI function
     try:
-        doc_name=str(resume_pre_data['name'] + "_Resume")
+        # Safe name handling
+        name = resume_pre_data.get("name", "resume")
+        doc_name = f"{name}_Resume"
+        
         resume_obj = Resume(name="", designation="", place="")
+
         generator = ResumeGenerator(model="groq",resume_data=resume_pre_data, jd=job_description, debug=debug)
 
         generator = generate_ai_resume(generator=generator, resume_obj=resume_obj)
 
         word_doc = build_word_doc(resume_obj=resume_obj, debug=True)
 
+        # # Cleanup after response
+        # @after_this_request
+        # def cleanup(response):
+        #     try:
+        #         if os.path.exists(word_doc):
+        #             os.remove(word_doc)
+        #             print("Deleted:", word_doc)
+        #     except Exception as e:
+        #         print("Error deleting file:", e)
+        #     return response
 
-        response = send_file(
+        # 🔥 schedule deletion AFTER some delay
+        delete_file_later(word_doc, delay=15)
+
+        return file_response(
             word_doc,
-            as_attachment=True,
-            download_name=doc_name+".docx",
-            mimetype='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+            filename=doc_name + ".docx",
+            mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            message="Resume generated successfully",
+            status_code=200
         )
-        # 🔥 Delete file AFTER response is sent
-        def delete_file_later(path, delay=5):
-            def task():
-                time.sleep(delay)
-                try:
-                    if os.path.exists(path):
-                        os.remove(path)
-                        print("Deleted:", path)
-                except Exception as e:
-                    print("Error deleting file:", e)
-
-            threading.Thread(target=task, daemon=True).start()
-        
-
-        # 👇 schedule deletion
-        delete_file_later(path=word_doc, delay=20)
-
-        return response
 
     except Exception as e:
         print("AI Error:", str(e))
-        
+        print("Traceback:")
+        traceback.print_exc()  # Shows full traceback
 
-    # Keep response SAME as requested
-    # return jsonify({
-    #     "status": "success",
-    #     "Job Description": job_description
-    # })
+        return error_response(
+            message="Failed to generate resume",
+            status_code=500,
+            errors=str(e)
+        )
+
 
 if __name__ == '__main__':
     app.run(debug=True)

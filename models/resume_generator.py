@@ -1,8 +1,11 @@
 import json
+import hashlib
 from .ai import AI
 import requests
 import time
 from .resume import Resume, ProfessionalExperience, TechnicalProject, Education, Certification
+
+AI_CACHE = {}
 
 class ResumeGenerator:
     def __init__(self, model, resume_data, jd, max_retries=5, backoff_factor=2, debug = False):
@@ -43,11 +46,31 @@ class ResumeGenerator:
 
     def _call_ai_with_retry(self, part, resume_content):
         """Call AI API with retry logic for 429 errors"""
+
+        cache_key_raw = {
+            "jd": self.jd,
+            "part": part,
+            "resume": resume_content
+        }
+        
+        cache_key = hashlib.md5(
+            json.dumps(cache_key_raw, sort_keys=True).encode()
+        ).hexdigest()
+
+        # 🔥 check shared cache
+        if cache_key in AI_CACHE:
+            if self.debug:
+                print("⚡ Cache hit")
+            return AI_CACHE[cache_key]
+        
         retries = 0
         wait_time = 10  # initial wait time in seconds
+
         while retries < self.max_retries:
             try:
                 result = self.ai.model.generate_from_ai(jd=self.jd, part=part, resume_content=resume_content)
+                # 🔥 store in shared cache
+                AI_CACHE[cache_key] = result
                 return result
             except requests.exceptions.HTTPError as e:
                 if e.response.status_code == 429:
@@ -89,18 +112,34 @@ class ResumeGenerator:
         # result = self._call_ai_with_retry(part="introduction", resume_content=resume_content)
         result = self._call_ai_with_retry(part="introduction", resume_content=ai_content)
         
-        resume_obj.name = result['name']
-        resume_obj.place = result['place']
-        resume_obj.designation = result['designation']
-        resume_obj.emails = result['emails']
-        resume_obj.mobile_numbers = result['mobile_numbers']
-        resume_obj.links = result['links']
-        resume_obj.nationality = result['nationality']
-        resume_obj.dob = result['dob']
-        resume_obj.visa_status = result['visa_status']
-        resume_obj.notice_period = result['notice_period']
-        self._pretty_print(result, "introduction")
-        return result
+        # resume_obj.name = result['name']
+        # resume_obj.place = result['place']
+        # resume_obj.designation = result['designation']
+        # resume_obj.emails = result['emails']
+        # resume_obj.mobile_numbers = result['mobile_numbers']
+        # resume_obj.links = result['links']
+        # resume_obj.nationality = result['nationality']
+        # resume_obj.dob = result['dob']
+        # resume_obj.visa_status = result['visa_status']
+        # resume_obj.notice_period = result['notice_period']
+
+        # Assign LOCAL data directly
+        resume_obj.name = local_content.get('name')
+        resume_obj.place = local_content.get('place')
+        resume_obj.emails = local_content.get('emails')
+        resume_obj.mobile_numbers = local_content.get('mobile_numbers')
+        resume_obj.links = local_content.get('links')
+        resume_obj.dob = local_content.get('dob')
+
+        # Assign AI-generated data
+        resume_obj.designation = result.get('designation')
+        resume_obj.nationality = result.get('nationality')
+        resume_obj.visa_status = result.get('visa_status')
+        resume_obj.notice_period = result.get('notice_period')
+        # Optional: combine for printing/debugging
+        combined_result = {**local_content, **result}
+        self._pretty_print(combined_result, "introduction")
+        return combined_result
 
     def generate_professional_summary(self, resume_obj: Resume):
         resume_content = self.resume_data.get('professional_summary')
@@ -138,6 +177,7 @@ class ResumeGenerator:
         # if isinstance(result['professional_experience'], dict):
         #     result['professional_experience'] = [result['professional_experience']]
         self._pretty_print(result, "Professional Experience")
+        print(result)
         # Store result in the Resume object
         resume_obj.professional_experience = [ProfessionalExperience(**job) for job in result['professional_experience']] 
         return result

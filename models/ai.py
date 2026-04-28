@@ -267,6 +267,70 @@ class HuggingFaceAI(BaseAI):
         return None        
 
 
+
+class Ollama(BaseAI):
+    
+    url = "http://172.20.10.6:11434/api/generate"
+
+    def __init__(self,  debug):
+        self.debug = debug
+        self.ai_model = "mistral"
+
+    def generate_from_ai(self, jd: str, resume_content: str, part: str = "introduction", retries: int = 2) -> dict:
+
+        user_prompt = self.generate_user_prompt(jd=jd, resume_content=resume_content, part=part)
+
+        payload = {
+            "model": self.ai_model,
+            "prompt": f"{self.sys_prompt}\n\n{user_prompt}",
+            "stream": False
+        }
+
+        for attempt in range(retries + 1):
+            try:
+                response = requests.post(self.url, json=payload, timeout=60)
+                if response.status_code != 200:
+                    print("Status:", response.status_code)
+                    print("Response:", response.text)
+                    raise ValueError("Ollama API request failed")
+                data = response.json()
+
+                text_output = data.get("response", "").strip()
+
+                # If only reasoning exists → force retry
+                if not text_output:
+                    raise ValueError("Model returned no usable content (only reasoning).")
+                
+                text_output = text_output.strip()
+                
+                # Remove markdown if any
+                if text_output.startswith("```"):
+                    text_output = "\n".join(text_output.splitlines()[1:-1])
+
+                text_output = self.extract_json(text_output)
+
+                # Try parsing JSON
+                try:
+                    return json.loads(text_output)
+                except json.JSONDecodeError:
+                    # Attempt to repair common JSON mistakes
+                    repaired = self._repair_json(text_output)
+                    return json.loads(repaired)
+
+            except Exception as e:
+                print(f"Attempt {attempt + 1} failed:", str(e))
+                print("Traceback:")
+                traceback.print_exc()  # Shows full traceback
+                # Optional: inspect variables if needed
+                # print("Current variables:", locals())
+                time.sleep(1)
+
+        
+        # Return empty dict if all retries fail
+        return {}
+
+
+
 class AI:
 
     def __init__(self, model: str, debug: bool = False):
@@ -278,6 +342,8 @@ class AI:
             self.model = GroqAI()
         elif model == "hugging_face":
             self.model = HuggingFaceAI()
+        elif model == "ollama":
+            self.model = Ollama(self.debug)
         else:
             raise ValueError("Unsupported model")
         
