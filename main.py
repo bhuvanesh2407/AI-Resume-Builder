@@ -172,7 +172,7 @@ def generate_resume():
         
         resume_obj = Resume(name="", designation="", place="")
 
-        generator = ResumeGenerator(model="groq",resume_data=resume_pre_data, jd=job_description, debug=debug)
+        generator = ResumeGenerator(model="gemini",resume_data=resume_pre_data, jd=job_description, debug=debug)
 
         generator = generate_ai_resume(generator=generator, resume_obj=resume_obj)
 

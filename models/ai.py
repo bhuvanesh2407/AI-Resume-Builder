@@ -6,6 +6,7 @@ import re
 import os
 from groq import Groq
 from huggingface_hub import InferenceClient
+from google import genai
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -267,6 +268,61 @@ class HuggingFaceAI(BaseAI):
         return None        
 
 
+class Gemini(BaseAI):
+    def __init__(self):
+        self.api_key = os.environ.get("GEMINI_API_KEY")
+        self.client = genai.Client(api_key=self.api_key)
+        # self.model = genai.GenerativeModel('gemini-2.0-flash') # Or gemini-1.5-pro
+    
+    def generate_from_ai(self, jd: str, resume_content: str, part: str = "introduction", retries: int = 2) -> dict:
+
+        user_prompt = self.generate_user_prompt(jd=jd, part=part, resume_content=resume_content)
+
+        for attempt in range(retries + 1):
+            try:
+                # # Gemini SDK uses generate_content with a system_instruction argument
+                # response = self.model.generate_content(
+                #     f"{self.sys_prompt}\n\nUser Request: {user_prompt}",
+                #     generation_config=genai.types.GenerationConfig(
+                #         candidate_count=1,
+                #         max_output_tokens=5000,
+                #         temperature=0.2,
+                #         top_p=1,
+                #         response_mime_type="application/json" # Ensures JSON output
+                #     )
+                # )
+
+                response = self.client.models.generate_content(
+                    model="gemini-3.1-flash-lite-preview",
+                    contents=user_prompt,
+                    config={
+                        "system_instruction": self.sys_prompt,
+                        "temperature": 0.2,
+                        "response_mime_type": "application/json"
+                    }
+                )
+
+                response_text = response.text.strip()
+                print(f"Attempt {attempt+1} raw:\n", response_text)
+
+                return json.loads(response_text)
+
+            except (json.JSONDecodeError, Exception) as e:
+                print(f"Attempt {attempt+1} failed: {e}")
+                if attempt < retries:
+                    print("Retrying...")
+                    continue
+                else:
+                    # Final attempt: try to repair if it's a JSON error
+                    try:
+                        repaired = self._repair_json(response_text)
+                        return json.loads(repaired)
+                    except:
+                        print("Could not recover JSON.")
+                        return None
+                    
+        return None        
+
 
 class Ollama(BaseAI):
     
@@ -329,6 +385,66 @@ class Ollama(BaseAI):
         # Return empty dict if all retries fail
         return {}
 
+class Llama(BaseAI):
+    
+    url = "http://172.20.10.6:11470/api/generate"
+
+    def __init__(self,  debug):
+        self.debug = debug
+        self.ai_model = "llama3.2"
+
+    def generate_from_ai(self, jd: str, resume_content: str, part: str = "introduction", retries: int = 2) -> dict:
+
+        user_prompt = self.generate_user_prompt(jd=jd, resume_content=resume_content, part=part)
+
+        payload = {
+            "model": self.ai_model,
+            "prompt": f"{self.sys_prompt}\n\n{user_prompt}",
+            "stream": False
+        }
+
+        for attempt in range(retries + 1):
+            try:
+                response = requests.post(self.url, json=payload, timeout=60)
+                if response.status_code != 200:
+                    print("Status:", response.status_code)
+                    print("Response:", response.text)
+                    raise ValueError("Ollama API request failed")
+                data = response.json()
+
+                text_output = data.get("response", "").strip()
+
+                # If only reasoning exists → force retry
+                if not text_output:
+                    raise ValueError("Model returned no usable content (only reasoning).")
+                
+                text_output = text_output.strip()
+                
+                # Remove markdown if any
+                if text_output.startswith("```"):
+                    text_output = "\n".join(text_output.splitlines()[1:-1])
+
+                text_output = self.extract_json(text_output)
+
+                # Try parsing JSON
+                try:
+                    return json.loads(text_output)
+                except json.JSONDecodeError:
+                    # Attempt to repair common JSON mistakes
+                    repaired = self._repair_json(text_output)
+                    return json.loads(repaired)
+
+            except Exception as e:
+                print(f"Attempt {attempt + 1} failed:", str(e))
+                print("Traceback:")
+                traceback.print_exc()  # Shows full traceback
+                # Optional: inspect variables if needed
+                # print("Current variables:", locals())
+                time.sleep(1)
+
+        
+        # Return empty dict if all retries fail
+        return {}
 
 
 class AI:
@@ -344,6 +460,10 @@ class AI:
             self.model = HuggingFaceAI()
         elif model == "ollama":
             self.model = Ollama(self.debug)
+        elif model == "llama":
+            self.model = Llama(self.debug)
+        elif model == "gemini":
+            self.model = Gemini()
         else:
             raise ValueError("Unsupported model")
         
